@@ -6,6 +6,8 @@
   <div class="main">
     <h1>You did it!</h1>
     <p>Finally</p>
+    <router-link to="/nev">nav</router-link>
+    <router-view />
   </div>
 </template>
 
