@@ -830,7 +830,8 @@
       setLoading('loginBtn', false);
       document.getElementById('loginBtn').textContent = 'Sign in';
       showSuccess("Welcome back!", "Taking you to your dashboard…");
-    }, 1800);
+    }, 1800).then(window.location.href='./Main.html');
+    
   }
 
   function handleSignup() {
@@ -851,7 +852,8 @@
     setTimeout(() => {
       setLoading('signupBtn', false);
       showSuccess(`Welcome, ${first}!`, "Your account is ready. Let's get building.");
-    }, 2000);
+    }, 2000).then(window.location.href='./Main.html');
+    
   }
 
   // Enter key support

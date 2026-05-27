@@ -1,0 +1,1581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ink & Signal — A Blog for Curious Minds</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&family=Instrument+Sans:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0e0d0b;
+  --surface: #161410;
+  --card: #1c1a17;
+  --border: #2a2722;
+  --ink: #f0ebe2;
+  --ink-dim: #8c8278;
+  --ink-faint: #3d3830;
+  --gold: #c9963a;
+  --gold-dim: #7a5c22;
+  --red: #c03b2a;
+  --green: #3a7a56;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: 'Instrument Sans', sans-serif;
+  background: var(--bg);
+  color: var(--ink);
+  min-height: 100vh;
+  cursor: none;
+}
+
+/* ── CUSTOM CURSOR ── */
+.cursor {
+  position: fixed;
+  width: 10px; height: 10px;
+  background: var(--gold);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%,-50%);
+  transition: transform 0.1s, width 0.25s, height 0.25s, background 0.25s;
+  mix-blend-mode: difference;
+}
+.cursor-ring {
+  position: fixed;
+  width: 36px; height: 36px;
+  border: 1px solid rgba(201,150,58,0.5);
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%,-50%);
+  transition: transform 0.18s ease, width 0.3s, height 0.3s, opacity 0.3s;
+}
+body:hover .cursor-ring { opacity: 1; }
+
+/* ── NOISE OVERLAY ── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-size: 180px;
+  opacity: 0.028;
+  pointer-events: none;
+  z-index: 1000;
+}
+
+/* ── HEADER ── */
+header {
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  background: rgba(14,13,11,0.92);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid var(--border);
+}
+
+.header-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 40px;
+  height: 64px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--ink);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-dot {
+  width: 7px; height: 7px;
+  background: var(--gold);
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+nav { display: flex; align-items: center; gap: 6px; }
+
+nav a {
+  font-size: 13px;
+  font-weight: 400;
+  color: var(--ink-dim);
+  text-decoration: none;
+  padding: 6px 14px;
+  border-radius: 6px;
+  transition: all 0.2s;
+  letter-spacing: 0.02em;
+}
+nav a:hover { color: var(--ink); background: var(--card); }
+nav a.active { color: var(--ink); }
+
+.header-actions { display: flex; align-items: center; gap: 10px; }
+
+.btn-write {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 8px 18px;
+  background: var(--gold);
+  color: var(--bg);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: none;
+  transition: all 0.25s;
+  letter-spacing: 0.02em;
+}
+.btn-write:hover { background: #d9a84a; transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,150,58,0.25); }
+
+.btn-search {
+  width: 36px; height: 36px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-dim);
+  display: flex; align-items: center; justify-content: center;
+  cursor: none;
+  transition: all 0.2s;
+}
+.btn-search:hover { border-color: var(--gold-dim); color: var(--gold); }
+
+/* ── TICKER ── */
+.ticker-bar {
+  background: var(--gold);
+  padding: 9px 0;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.ticker-track {
+  display: inline-flex;
+  gap: 0;
+  animation: ticker 28s linear infinite;
+}
+
+.ticker-track span {
+  font-size: 11.5px;
+  font-weight: 500;
+  color: var(--bg);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0 32px;
+}
+.ticker-track span::before {
+  content: '◆';
+  margin-right: 32px;
+  opacity: 0.5;
+}
+
+@keyframes ticker { from { transform: translateX(0); } to { transform: translateX(-50%); } }
+
+/* ── HERO ── */
+.hero {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 72px 40px 60px;
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 40px;
+  align-items: start;
+}
+
+.hero-featured {
+  position: relative;
+  overflow: hidden;
+  border-radius: 2px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  cursor: none;
+  animation: fadeIn 0.8s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+@keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+
+.hero-img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  background: linear-gradient(135deg, #1e1b16 0%, #252018 40%, #1a190f 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.hero-img-graphic {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.hero-img-graphic svg { width: 100%; height: 100%; opacity: 0.15; }
+
+.hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(14,13,11,0.97) 0%, rgba(14,13,11,0.3) 60%, transparent 100%);
+}
+
+.hero-content {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 36px 40px;
+}
+
+.tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  margin-bottom: 14px;
+}
+.tag.featured { background: rgba(201,150,58,0.18); color: var(--gold); border: 1px solid rgba(201,150,58,0.3); }
+.tag.tech     { background: rgba(58,122,86,0.15); color: #5ab87a; border: 1px solid rgba(58,122,86,0.25); }
+.tag.culture  { background: rgba(192,59,42,0.12); color: #e06050; border: 1px solid rgba(192,59,42,0.2); }
+.tag.science  { background: rgba(70,120,200,0.12); color: #7aaae0; border: 1px solid rgba(70,120,200,0.2); }
+.tag.opinion  { background: rgba(150,100,200,0.12); color: #b090e0; border: 1px solid rgba(150,100,200,0.2); }
+.tag.design   { background: rgba(200,150,58,0.12); color: #e0b878; border: 1px solid rgba(200,150,58,0.2); }
+
+.hero-content h1 {
+  font-family: 'Playfair Display', serif;
+  font-size: clamp(28px, 3.5vw, 44px);
+  font-weight: 700;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  margin-bottom: 14px;
+  color: var(--ink);
+}
+
+.hero-content p {
+  font-size: 15px;
+  color: var(--ink-dim);
+  line-height: 1.65;
+  margin-bottom: 22px;
+  max-width: 580px;
+  font-weight: 300;
+}
+
+.article-meta {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.author-chip {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.avatar-sm {
+  width: 28px; height: 28px;
+  border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.av-1 { background: linear-gradient(135deg,#c9963a,#7a5c22); color: #fff; }
+.av-2 { background: linear-gradient(135deg,#3a7a56,#1e4a30); color: #fff; }
+.av-3 { background: linear-gradient(135deg,#6a4ab0,#3a2470); color: #fff; }
+.av-4 { background: linear-gradient(135deg,#c03b2a,#7a2018); color: #fff; }
+.av-5 { background: linear-gradient(135deg,#2a6ab0,#144070); color: #fff; }
+.av-6 { background: linear-gradient(135deg,#b0802a,#704a10); color: #fff; }
+
+.author-name { font-size: 13px; color: var(--ink); font-weight: 400; }
+.meta-sep { color: var(--ink-faint); }
+.meta-info { font-size: 12.5px; color: var(--ink-dim); }
+.read-time { font-size: 12.5px; color: var(--ink-dim); }
+
+.hero-featured:hover .hero-img-graphic svg { opacity: 0.22; transition: opacity 0.4s; }
+
+/* ── HERO SIDEBAR ── */
+.hero-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  animation: fadeIn 0.8s 0.15s cubic-bezier(0.16,1,0.3,1) both;
+}
+
+.sidebar-header {
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  font-weight: 500;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0;
+}
+
+.side-article {
+  padding: 20px 0;
+  border-bottom: 1px solid var(--border);
+  cursor: none;
+  transition: all 0.2s;
+  display: flex;
+  gap: 14px;
+  align-items: flex-start;
+}
+
+.side-article:hover .side-title { color: var(--gold); }
+
+.side-num {
+  font-family: 'Playfair Display', serif;
+  font-size: 22px;
+  font-weight: 900;
+  color: var(--ink-faint);
+  line-height: 1;
+  flex-shrink: 0;
+  width: 28px;
+  transition: color 0.2s;
+}
+.side-article:hover .side-num { color: var(--gold-dim); }
+
+.side-body { flex: 1; min-width: 0; }
+
+.side-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 15.5px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--ink);
+  margin-bottom: 8px;
+  letter-spacing: -0.01em;
+  transition: color 0.2s;
+}
+
+.side-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* ── MAIN LAYOUT ── */
+.main-wrap {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 40px 80px;
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  gap: 60px;
+}
+
+/* ── SECTION HEADER ── */
+.section-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 28px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.section-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 20px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--ink);
+}
+
+.section-link {
+  font-size: 12.5px;
+  color: var(--gold);
+  text-decoration: none;
+  letter-spacing: 0.04em;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: gap 0.2s;
+}
+.section-link:hover { gap: 8px; }
+
+/* ── ARTICLE GRID ── */
+.article-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+  margin-bottom: 40px;
+}
+
+.article-card {
+  background: var(--card);
+  padding: 28px;
+  cursor: none;
+  transition: background 0.2s;
+  position: relative;
+  overflow: hidden;
+}
+
+.article-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  background: var(--gold);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+
+.article-card:hover { background: #201e1a; }
+.article-card:hover::before { transform: scaleX(1); }
+
+.card-img {
+  width: 100%;
+  aspect-ratio: 16/9;
+  border-radius: 2px;
+  margin-bottom: 18px;
+  overflow: hidden;
+  position: relative;
+}
+
+.card-img-inner {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--surface), var(--card));
+  display: flex; align-items: center; justify-content: center;
+  transition: transform 0.5s cubic-bezier(0.16,1,0.3,1);
+  position: relative;
+}
+
+.article-card:hover .card-img-inner { transform: scale(1.03); }
+
+.card-img-pattern {
+  position: absolute; inset: 0;
+  opacity: 0.25;
+}
+
+.card-tag { margin-bottom: 10px; }
+
+.card-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin-bottom: 10px;
+  transition: color 0.2s;
+}
+.article-card:hover .card-title { color: var(--gold); }
+
+.card-excerpt {
+  font-size: 13.5px;
+  color: var(--ink-dim);
+  line-height: 1.65;
+  margin-bottom: 18px;
+  font-weight: 300;
+}
+
+.card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.card-stats {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--ink-dim);
+  transition: color 0.2s;
+}
+
+.article-card:hover .stat { color: var(--ink-dim); }
+
+.stat svg { width: 13px; height: 13px; }
+
+.bookmark-btn {
+  width: 28px; height: 28px;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  color: var(--ink-dim);
+  display: flex; align-items: center; justify-content: center;
+  cursor: none;
+  transition: all 0.2s;
+}
+.bookmark-btn:hover { border-color: var(--gold); color: var(--gold); background: rgba(201,150,58,0.08); }
+.bookmark-btn.saved { background: rgba(201,150,58,0.15); border-color: var(--gold); color: var(--gold); }
+
+/* ── WIDE ARTICLE ── */
+.article-wide {
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 28px;
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  cursor: none;
+  border-radius: 2px;
+  transition: background 0.2s;
+  margin-bottom: 1px;
+  position: relative;
+  overflow: hidden;
+}
+
+.article-wide::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0;
+  width: 2px; bottom: 0;
+  background: var(--gold);
+  transform: scaleY(0);
+  transform-origin: top;
+  transition: transform 0.3s cubic-bezier(0.16,1,0.3,1);
+}
+.article-wide:hover { background: #201e1a; }
+.article-wide:hover::before { transform: scaleY(1); }
+.article-wide:hover .card-title { color: var(--gold); }
+
+.wide-img {
+  border-radius: 2px;
+  overflow: hidden;
+  aspect-ratio: 4/3;
+}
+
+.wide-img-inner {
+  width: 100%; height: 100%;
+  background: linear-gradient(135deg, var(--surface), var(--card));
+  display: flex; align-items: center; justify-content: center;
+  position: relative;
+  transition: transform 0.5s;
+}
+.article-wide:hover .wide-img-inner { transform: scale(1.04); }
+
+/* ── SIDEBAR ── */
+.sidebar { padding-top: 0; }
+
+.sidebar-widget {
+  margin-bottom: 36px;
+}
+
+/* CATEGORIES */
+.category-list { list-style: none; }
+.category-list li { border-bottom: 1px solid var(--border); }
+
+.category-list a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  text-decoration: none;
+  color: var(--ink-dim);
+  font-size: 14px;
+  transition: all 0.2s;
+}
+.category-list a:hover { color: var(--gold); padding-left: 6px; }
+
+.cat-count {
+  font-size: 11px;
+  color: var(--ink-faint);
+  background: var(--card);
+  border: 1px solid var(--border);
+  padding: 2px 8px;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+.category-list a:hover .cat-count { border-color: var(--gold-dim); color: var(--gold); }
+
+/* TRENDING */
+.trending-list { display: flex; flex-direction: column; gap: 16px; }
+
+.trending-item {
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  cursor: none;
+  transition: all 0.2s;
+  padding: 12px;
+  border-radius: 4px;
+  border: 1px solid transparent;
+}
+.trending-item:hover { background: var(--card); border-color: var(--border); }
+
+.trend-rank {
+  font-family: 'Playfair Display', serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: var(--ink-faint);
+  line-height: 1;
+  flex-shrink: 0;
+  width: 28px;
+}
+.trending-item:hover .trend-rank { color: var(--gold-dim); }
+
+.trend-title {
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--ink);
+  line-height: 1.4;
+  margin-bottom: 4px;
+  transition: color 0.2s;
+}
+.trending-item:hover .trend-title { color: var(--gold); }
+
+.trend-meta { font-size: 11.5px; color: var(--ink-dim); }
+
+/* NEWSLETTER */
+.newsletter-widget {
+  background: linear-gradient(135deg, #1c1a17, #201e18);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.newsletter-widget::before {
+  content: '';
+  position: absolute;
+  top: -40px; right: -40px;
+  width: 120px; height: 120px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(201,150,58,0.12) 0%, transparent 70%);
+}
+
+.newsletter-widget h3 {
+  font-family: 'Playfair Display', serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--ink);
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.newsletter-widget p {
+  font-size: 13px;
+  color: var(--ink-dim);
+  line-height: 1.6;
+  margin-bottom: 18px;
+  font-weight: 300;
+}
+
+.nl-input-wrap {
+  display: flex;
+  gap: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--surface);
+  transition: border-color 0.2s;
+}
+.nl-input-wrap:focus-within { border-color: var(--gold-dim); }
+
+.nl-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  padding: 10px 14px;
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 13px;
+  color: var(--ink);
+  outline: none;
+}
+.nl-input::placeholder { color: var(--ink-dim); }
+
+.nl-btn {
+  padding: 10px 16px;
+  background: var(--gold);
+  border: none;
+  color: var(--bg);
+  font-family: 'Instrument Sans', sans-serif;
+  font-size: 12.5px;
+  font-weight: 500;
+  cursor: none;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.nl-btn:hover { background: #d9a84a; }
+
+.nl-note {
+  font-size: 11px;
+  color: var(--ink-faint);
+  margin-top: 10px;
+  line-height: 1.5;
+}
+
+/* ── TOPICS BAR ── */
+.topics-bar {
+  max-width: 1320px;
+  margin: 0 auto 52px;
+  padding: 0 40px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.topic-pill {
+  padding: 7px 16px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12.5px;
+  color: var(--ink-dim);
+  text-decoration: none;
+  transition: all 0.2s;
+  font-weight: 400;
+  cursor: none;
+}
+.topic-pill:hover, .topic-pill.active {
+  border-color: var(--gold);
+  color: var(--gold);
+  background: rgba(201,150,58,0.07);
+}
+
+.topics-label {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-faint);
+  font-weight: 500;
+  margin-right: 6px;
+}
+
+/* ── EDITORS PICKS ── */
+.editors-strip {
+  max-width: 1320px;
+  margin: 0 auto 60px;
+  padding: 0 40px;
+}
+
+.strip-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1px;
+  background: var(--border);
+  border: 1px solid var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.strip-card {
+  background: var(--card);
+  padding: 28px;
+  cursor: none;
+  transition: background 0.2s;
+  position: relative;
+}
+.strip-card:hover { background: #201e1a; }
+.strip-card:hover .strip-title { color: var(--gold); }
+
+.strip-icon {
+  width: 40px; height: 40px;
+  border-radius: 8px;
+  display: flex; align-items: center; justify-content: center;
+  margin-bottom: 16px;
+  font-size: 18px;
+}
+
+.strip-title {
+  font-family: 'Playfair Display', serif;
+  font-size: 16px;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--ink);
+  margin-bottom: 8px;
+  transition: color 0.2s;
+  letter-spacing: -0.01em;
+}
+
+.strip-excerpt {
+  font-size: 13px;
+  color: var(--ink-dim);
+  line-height: 1.6;
+  font-weight: 300;
+}
+
+/* ── FOOTER ── */
+footer {
+  border-top: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.footer-inner {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 52px 40px 32px;
+}
+
+.footer-grid {
+  display: grid;
+  grid-template-columns: 260px 1fr 1fr 1fr;
+  gap: 48px;
+  margin-bottom: 40px;
+}
+
+.footer-brand p {
+  font-size: 13px;
+  color: var(--ink-dim);
+  line-height: 1.65;
+  margin-top: 14px;
+  font-weight: 300;
+}
+
+.footer-col h4 {
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ink-dim);
+  font-weight: 500;
+  margin-bottom: 16px;
+}
+
+.footer-col a {
+  display: block;
+  font-size: 13.5px;
+  color: var(--ink-dim);
+  text-decoration: none;
+  margin-bottom: 10px;
+  transition: color 0.2s;
+}
+.footer-col a:hover { color: var(--gold); }
+
+.footer-bottom {
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.footer-bottom p { font-size: 12.5px; color: var(--ink-faint); }
+
+.social-links { display: flex; gap: 8px; }
+
+.social-link {
+  width: 32px; height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  display: flex; align-items: center; justify-content: center;
+  color: var(--ink-dim);
+  text-decoration: none;
+  font-size: 13px;
+  transition: all 0.2s;
+  cursor: none;
+}
+.social-link:hover { border-color: var(--gold); color: var(--gold); }
+
+/* ── READING PROGRESS ── */
+.progress-bar {
+  position: fixed;
+  top: 0; left: 0;
+  height: 2px;
+  background: var(--gold);
+  z-index: 200;
+  width: 0%;
+  transition: width 0.1s;
+}
+
+/* ── ANIMATIONS ── */
+.reveal {
+  opacity: 0;
+  transform: translateY(28px);
+  transition: opacity 0.7s cubic-bezier(0.16,1,0.3,1), transform 0.7s cubic-bezier(0.16,1,0.3,1);
+}
+.reveal.visible { opacity: 1; transform: none; }
+
+/* ── RESPONSIVE ── */
+@media (max-width: 1100px) {
+  .hero { grid-template-columns: 1fr; }
+  .hero-sidebar { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0 20px; }
+  .sidebar-header { grid-column: 1/-1; }
+  .main-wrap { grid-template-columns: 1fr; }
+  .sidebar { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 32px; }
+  .footer-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 720px) {
+  .header-inner { padding: 0 20px; }
+  nav { display: none; }
+  .hero { padding: 40px 20px 32px; }
+  .topics-bar, .editors-strip, .main-wrap { padding-left: 20px; padding-right: 20px; }
+  .article-grid { grid-template-columns: 1fr; }
+  .strip-grid { grid-template-columns: 1fr; }
+  .article-wide { grid-template-columns: 1fr; }
+  .footer-grid { grid-template-columns: 1fr; }
+  .hero-sidebar { grid-template-columns: 1fr; }
+}
+</style>
+</head>
+<body>
+
+<div class="cursor" id="cursor"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+<div class="progress-bar" id="progressBar"></div>
+
+<!-- HEADER -->
+<header>
+  <div class="header-inner">
+    <a href="#" class="logo">
+      <div class="logo-dot"></div>
+      Ink & Signal
+    </a>
+    <nav>
+      <a href="#" class="active">Home</a>
+      <a href="#">Technology</a>
+      <a href="#">Culture</a>
+      <a href="#">Science</a>
+      <a href="#">Opinion</a>
+    </nav>
+    <div class="header-actions">
+      <button class="btn-search" title="Search">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </button>
+      <button class="btn-write">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Write
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- TICKER -->
+<div class="ticker-bar">
+  <div class="ticker-track" id="ticker">
+    <span>The Future of AI in Everyday Life</span>
+    <span>Why Cities Are Rethinking Public Space</span>
+    <span>The Science of Deep Sleep</span>
+    <span>Web3's Long Road to Relevance</span>
+    <span>Reading in the Age of Infinite Scroll</span>
+    <span>How Sound Shapes Memory</span>
+    <span>The Future of AI in Everyday Life</span>
+    <span>Why Cities Are Rethinking Public Space</span>
+    <span>The Science of Deep Sleep</span>
+    <span>Web3's Long Road to Relevance</span>
+    <span>Reading in the Age of Infinite Scroll</span>
+    <span>How Sound Shapes Memory</span>
+  </div>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <!-- Featured Post -->
+  <div class="hero-featured reveal">
+    <div class="hero-img">
+      <div class="hero-img-graphic">
+        <svg viewBox="0 0 800 450" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="rg1" cx="30%" cy="70%">
+              <stop offset="0%" stop-color="#c9963a" stop-opacity="0.4"/>
+              <stop offset="100%" stop-color="transparent"/>
+            </radialGradient>
+          </defs>
+          <rect width="800" height="450" fill="url(#rg1)"/>
+          <line x1="0" y1="225" x2="800" y2="225" stroke="#c9963a" stroke-width="0.5" opacity="0.3"/>
+          <line x1="400" y1="0" x2="400" y2="450" stroke="#c9963a" stroke-width="0.5" opacity="0.3"/>
+          <circle cx="400" cy="225" r="120" fill="none" stroke="#c9963a" stroke-width="0.5" opacity="0.4"/>
+          <circle cx="400" cy="225" r="200" fill="none" stroke="#c9963a" stroke-width="0.3" opacity="0.2"/>
+          <circle cx="400" cy="225" r="60" fill="none" stroke="#c9963a" stroke-width="1" opacity="0.5"/>
+          <polygon points="400,145 466,187 466,263 400,305 334,263 334,187" fill="none" stroke="#c9963a" stroke-width="0.8" opacity="0.5"/>
+          <text x="400" y="232" text-anchor="middle" font-size="14" fill="#c9963a" opacity="0.6" font-family="serif" letter-spacing="6">FEATURED</text>
+        </svg>
+      </div>
+      <div class="hero-overlay"></div>
+      <div class="hero-content">
+        <div class="tag featured">★ Editor's Pick</div>
+        <h1>The Quiet Revolution Happening Inside Your Brain Every Night</h1>
+        <p>New research on sleep architecture is upending everything we thought we knew about memory, creativity, and emotional regulation — and the implications are profound.</p>
+        <div class="article-meta">
+          <div class="author-chip">
+            <div class="avatar-sm av-1">MK</div>
+            <span class="author-name">Maya Kline</span>
+          </div>
+          <span class="meta-sep">·</span>
+          <span class="meta-info">May 22, 2026</span>
+          <span class="meta-sep">·</span>
+          <span class="read-time">8 min read</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div class="hero-sidebar reveal">
+    <div class="sidebar-header">Also worth reading</div>
+    <div class="side-article">
+      <div class="side-num">01</div>
+      <div class="side-body">
+        <div class="side-title">The New Language of Machine Emotion</div>
+        <div class="side-meta">
+          <div class="author-chip">
+            <div class="avatar-sm av-2">JT</div>
+            <span class="author-name" style="font-size:12px">James Tran</span>
+          </div>
+          <span class="meta-sep">·</span>
+          <span class="meta-info">6 min</span>
+        </div>
+      </div>
+    </div>
+    <div class="side-article">
+      <div class="side-num">02</div>
+      <div class="side-body">
+        <div class="side-title">Why Minimalism Became a Luxury Ideology</div>
+        <div class="side-meta">
+          <div class="author-chip">
+            <div class="avatar-sm av-3">SR</div>
+            <span class="author-name" style="font-size:12px">Sofia Reyes</span>
+          </div>
+          <span class="meta-sep">·</span>
+          <span class="meta-info">5 min</span>
+        </div>
+      </div>
+    </div>
+    <div class="side-article">
+      <div class="side-num">03</div>
+      <div class="side-body">
+        <div class="side-title">Open Source AI Is Eating the World — Should We Let It?</div>
+        <div class="side-meta">
+          <div class="author-chip">
+            <div class="avatar-sm av-4">RN</div>
+            <span class="author-name" style="font-size:12px">Ravi Nair</span>
+          </div>
+          <span class="meta-sep">·</span>
+          <span class="meta-info">10 min</span>
+        </div>
+      </div>
+    </div>
+    <div class="side-article">
+      <div class="side-num">04</div>
+      <div class="side-body">
+        <div class="side-title">The Architecture of Attention in a Distracted World</div>
+        <div class="side-meta">
+          <div class="author-chip">
+            <div class="avatar-sm av-5">AK</div>
+            <span class="author-name" style="font-size:12px">Aiko Kato</span>
+          </div>
+          <span class="meta-sep">·</span>
+          <span class="meta-info">7 min</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TOPICS -->
+<div class="topics-bar reveal">
+  <span class="topics-label">Topics</span>
+  <a href="#" class="topic-pill active">All</a>
+  <a href="#" class="topic-pill">Technology</a>
+  <a href="#" class="topic-pill">Science</a>
+  <a href="#" class="topic-pill">Culture</a>
+  <a href="#" class="topic-pill">Opinion</a>
+  <a href="#" class="topic-pill">Design</a>
+  <a href="#" class="topic-pill">Health</a>
+  <a href="#" class="topic-pill">Philosophy</a>
+  <a href="#" class="topic-pill">Climate</a>
+  <a href="#" class="topic-pill">Economics</a>
+</div>
+
+<!-- MAIN + SIDEBAR -->
+<div class="main-wrap">
+  <main>
+    <!-- Latest Section -->
+    <div class="section-header reveal">
+      <h2 class="section-title">Latest Stories</h2>
+      <a href="#" class="section-link">View all <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </div>
+
+    <div class="article-grid reveal">
+      <!-- Card 1 -->
+      <div class="article-card">
+        <div class="card-img">
+          <div class="card-img-inner">
+            <div class="card-img-pattern">
+              <svg width="100%" height="100%" viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
+                <defs><linearGradient id="g1" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3a7a56" stop-opacity="0.4"/><stop offset="100%" stop-color="#1e4a30" stop-opacity="0.1"/></linearGradient></defs>
+                <rect width="300" height="170" fill="url(#g1)"/>
+                <circle cx="60" cy="85" r="50" fill="none" stroke="#5ab87a" stroke-width="0.8" opacity="0.5"/>
+                <circle cx="60" cy="85" r="30" fill="none" stroke="#5ab87a" stroke-width="0.5" opacity="0.3"/>
+                <text x="150" y="90" text-anchor="middle" font-size="11" fill="#5ab87a" opacity="0.5" font-family="serif" letter-spacing="4">SCIENCE</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-tag"><span class="tag science">Science</span></div>
+        <div class="card-title">The Microbiome Hypothesis: Your Gut Might Be Running the Show</div>
+        <div class="card-excerpt">Scientists are uncovering startling links between gut bacteria and mood, cognition, and even political beliefs. The implications are deeply unsettling.</div>
+        <div class="card-footer">
+          <div class="author-chip">
+            <div class="avatar-sm av-2">JT</div>
+            <div>
+              <div class="author-name" style="font-size:12px">James Tran</div>
+              <div class="meta-info">6 min read</div>
+            </div>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              2.1k
+            </div>
+            <button class="bookmark-btn" onclick="toggleBookmark(this)" title="Save">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 2 -->
+      <div class="article-card">
+        <div class="card-img">
+          <div class="card-img-inner">
+            <div class="card-img-pattern">
+              <svg width="100%" height="100%" viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
+                <defs><linearGradient id="g2" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#c03b2a" stop-opacity="0.35"/><stop offset="100%" stop-color="#7a2018" stop-opacity="0.1"/></linearGradient></defs>
+                <rect width="300" height="170" fill="url(#g2)"/>
+                <rect x="100" y="40" width="100" height="90" fill="none" stroke="#e06050" stroke-width="0.8" opacity="0.5"/>
+                <rect x="115" y="55" width="70" height="60" fill="none" stroke="#e06050" stroke-width="0.5" opacity="0.3"/>
+                <text x="150" y="92" text-anchor="middle" font-size="11" fill="#e06050" opacity="0.5" font-family="serif" letter-spacing="4">CULTURE</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-tag"><span class="tag culture">Culture</span></div>
+        <div class="card-title">Against Optimization: The Case for Wasted Time</div>
+        <div class="card-excerpt">In our relentless pursuit of productivity, we've lost something essential. What if doing nothing is the most radical act left?</div>
+        <div class="card-footer">
+          <div class="author-chip">
+            <div class="avatar-sm av-3">SR</div>
+            <div>
+              <div class="author-name" style="font-size:12px">Sofia Reyes</div>
+              <div class="meta-info">5 min read</div>
+            </div>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              4.7k
+            </div>
+            <button class="bookmark-btn" onclick="toggleBookmark(this)" title="Save">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="article-card">
+        <div class="card-img">
+          <div class="card-img-inner">
+            <div class="card-img-pattern">
+              <svg width="100%" height="100%" viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
+                <defs><linearGradient id="g3" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#4678c8" stop-opacity="0.3"/><stop offset="100%" stop-color="#1a3068" stop-opacity="0.1"/></linearGradient></defs>
+                <rect width="300" height="170" fill="url(#g3)"/>
+                <polygon points="150,30 200,120 100,120" fill="none" stroke="#7aaae0" stroke-width="0.8" opacity="0.5"/>
+                <polygon points="150,55 183,110 117,110" fill="none" stroke="#7aaae0" stroke-width="0.5" opacity="0.3"/>
+                <text x="150" y="90" text-anchor="middle" font-size="11" fill="#7aaae0" opacity="0.5" font-family="serif" letter-spacing="4">TECH</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-tag"><span class="tag tech">Technology</span></div>
+        <div class="card-title">The Browser Wars Are Back — And This Time It's Personal</div>
+        <div class="card-excerpt">A new generation of browsers are competing not on speed or standards, but on privacy, AI integration, and attention economics.</div>
+        <div class="card-footer">
+          <div class="author-chip">
+            <div class="avatar-sm av-5">AK</div>
+            <div>
+              <div class="author-name" style="font-size:12px">Aiko Kato</div>
+              <div class="meta-info">7 min read</div>
+            </div>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              1.8k
+            </div>
+            <button class="bookmark-btn" onclick="toggleBookmark(this)" title="Save">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="article-card">
+        <div class="card-img">
+          <div class="card-img-inner">
+            <div class="card-img-pattern">
+              <svg width="100%" height="100%" viewBox="0 0 300 170" xmlns="http://www.w3.org/2000/svg">
+                <defs><linearGradient id="g4" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#9650c8" stop-opacity="0.3"/><stop offset="100%" stop-color="#4a1878" stop-opacity="0.1"/></linearGradient></defs>
+                <rect width="300" height="170" fill="url(#g4)"/>
+                <line x1="50" y1="50" x2="250" y2="120" stroke="#b090e0" stroke-width="0.8" opacity="0.4"/>
+                <line x1="50" y1="85" x2="250" y2="85" stroke="#b090e0" stroke-width="0.5" opacity="0.3"/>
+                <line x1="50" y1="120" x2="250" y2="50" stroke="#b090e0" stroke-width="0.8" opacity="0.4"/>
+                <text x="150" y="92" text-anchor="middle" font-size="11" fill="#b090e0" opacity="0.5" font-family="serif" letter-spacing="4">OPINION</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <div class="card-tag"><span class="tag opinion">Opinion</span></div>
+        <div class="card-title">We Need to Stop Pretending That Data Has No Politics</div>
+        <div class="card-excerpt">Every dataset is a set of choices. Every algorithm encodes assumptions. It's time to treat data collection as the fundamentally political act that it is.</div>
+        <div class="card-footer">
+          <div class="author-chip">
+            <div class="avatar-sm av-4">RN</div>
+            <div>
+              <div class="author-name" style="font-size:12px">Ravi Nair</div>
+              <div class="meta-info">9 min read</div>
+            </div>
+          </div>
+          <div class="card-stats">
+            <div class="stat">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+              6.2k
+            </div>
+            <button class="bookmark-btn" onclick="toggleBookmark(this)" title="Save">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Long Reads Section -->
+    <div class="section-header reveal">
+      <h2 class="section-title">Long Reads</h2>
+      <a href="#" class="section-link">View all <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+    </div>
+
+    <div class="reveal">
+      <div class="article-wide">
+        <div class="wide-img">
+          <div class="wide-img-inner">
+            <svg width="100%" height="100%" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+              <defs><radialGradient id="rg2" cx="50%" cy="50%"><stop offset="0%" stop-color="#c9963a" stop-opacity="0.35"/><stop offset="100%" stop-color="#c9963a" stop-opacity="0"/></radialGradient></defs>
+              <rect width="200" height="150" fill="url(#rg2)"/>
+              <circle cx="100" cy="75" r="45" fill="none" stroke="#c9963a" stroke-width="0.8" opacity="0.5" stroke-dasharray="4 4"/>
+              <circle cx="100" cy="75" r="25" fill="none" stroke="#c9963a" stroke-width="1" opacity="0.6"/>
+              <line x1="55" y1="75" x2="145" y2="75" stroke="#c9963a" stroke-width="0.5" opacity="0.4"/>
+              <line x1="100" y1="30" x2="100" y2="120" stroke="#c9963a" stroke-width="0.5" opacity="0.4"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="tag design" style="margin-bottom:12px">Design</div>
+          <div class="card-title" style="font-size:20px;margin-bottom:10px">The Invisible Hand of UI: How Defaults Shape Billion-Person Behaviors</div>
+          <div class="card-excerpt">A deep investigation into how technology defaults — from notification settings to color choices — quietly steer the decisions of billions of people every day. And why designers have more ethical responsibility than they realize.</div>
+          <div class="card-footer" style="border-top:1px solid var(--border);padding-top:14px;margin-top:16px">
+            <div class="author-chip">
+              <div class="avatar-sm av-6">LP</div>
+              <div>
+                <div class="author-name" style="font-size:12px">Lena Park</div>
+                <div class="meta-info">14 min read</div>
+              </div>
+            </div>
+            <div class="card-stats">
+              <div class="stat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                8.4k
+              </div>
+              <button class="bookmark-btn" onclick="toggleBookmark(this)" title="Save">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="article-wide" style="margin-top:1px">
+        <div class="wide-img">
+          <div class="wide-img-inner">
+            <svg width="100%" height="100%" viewBox="0 0 200 150" xmlns="http://www.w3.org/2000/svg">
+              <defs><linearGradient id="g5" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#3a7a56" stop-opacity="0.4"/><stop offset="100%" stop-color="#1e3a2a" stop-opacity="0.1"/></linearGradient></defs>
+              <rect width="200" height="150" fill="url(#g5)"/>
+              <rect x="40" y="30" width="120" height="90" fill="none" stroke="#5ab87a" stroke-width="0.8" opacity="0.4"/>
+              <rect x="55" y="45" width="90" height="60" fill="none" stroke="#5ab87a" stroke-width="0.5" opacity="0.3"/>
+              <line x1="40" y1="75" x2="160" y2="75" stroke="#5ab87a" stroke-width="0.5" opacity="0.5"/>
+            </svg>
+          </div>
+        </div>
+        <div>
+          <div class="tag science" style="margin-bottom:12px">Science</div>
+          <div class="card-title" style="font-size:20px;margin-bottom:10px">On the Edge of Consciousness: What Near-Death Experiences Tell Us About the Mind</div>
+          <div class="card-excerpt">Thousands of people have returned from the brink with strikingly similar accounts. A new wave of rigorous neuroscience is taking these reports seriously for the first time.</div>
+          <div class="card-footer" style="border-top:1px solid var(--border);padding-top:14px;margin-top:16px">
+            <div class="author-chip">
+              <div class="avatar-sm av-1">MK</div>
+              <div>
+                <div class="author-name" style="font-size:12px">Maya Kline</div>
+                <div class="meta-info">18 min read</div>
+              </div>
+            </div>
+            <div class="card-stats">
+              <div class="stat">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                11.2k
+              </div>
+              <button class="bookmark-btn" onclick="toggleBookmark(this)" title="Save">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m19 21-7-4-7 4V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/></svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <!-- Newsletter -->
+    <div class="sidebar-widget reveal">
+      <div class="newsletter-widget">
+        <h3>The Weekly Signal</h3>
+        <p>One email, every Sunday. The best essays from the week — curated, not algorithmically sorted.</p>
+        <div class="nl-input-wrap">
+          <input type="email" class="nl-input" placeholder="your@email.com">
+          <button class="nl-btn">Subscribe</button>
+        </div>
+        <p class="nl-note">No ads. No tracking. Unsubscribe any time.<br>Join 42,000 readers.</p>
+      </div>
+    </div>
+
+    <!-- Trending -->
+    <div class="sidebar-widget reveal">
+      <div class="section-header" style="margin-bottom:16px">
+        <h3 class="section-title" style="font-size:16px">Trending Now</h3>
+      </div>
+      <div class="trending-list">
+        <div class="trending-item">
+          <div class="trend-rank">1</div>
+          <div>
+            <div class="trend-title">The New Language of Machine Emotion</div>
+            <div class="trend-meta">James Tran · 6 min</div>
+          </div>
+        </div>
+        <div class="trending-item">
+          <div class="trend-rank">2</div>
+          <div>
+            <div class="trend-title">We Need to Stop Pretending That Data Has No Politics</div>
+            <div class="trend-meta">Ravi Nair · 9 min</div>
+          </div>
+        </div>
+        <div class="trending-item">
+          <div class="trend-rank">3</div>
+          <div>
+            <div class="trend-title">On the Edge of Consciousness</div>
+            <div class="trend-meta">Maya Kline · 18 min</div>
+          </div>
+        </div>
+        <div class="trending-item">
+          <div class="trend-rank">4</div>
+          <div>
+            <div class="trend-title">Against Optimization: The Case for Wasted Time</div>
+            <div class="trend-meta">Sofia Reyes · 5 min</div>
+          </div>
+        </div>
+        <div class="trending-item">
+          <div class="trend-rank">5</div>
+          <div>
+            <div class="trend-title">The Invisible Hand of UI</div>
+            <div class="trend-meta">Lena Park · 14 min</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Categories -->
+    <div class="sidebar-widget reveal">
+      <div class="section-header" style="margin-bottom:0">
+        <h3 class="section-title" style="font-size:16px">Categories</h3>
+      </div>
+      <ul class="category-list">
+        <li><a href="#">Technology <span class="cat-count">124</span></a></li>
+        <li><a href="#">Science <span class="cat-count">98</span></a></li>
+        <li><a href="#">Culture <span class="cat-count">211</span></a></li>
+        <li><a href="#">Opinion <span class="cat-count">87</span></a></li>
+        <li><a href="#">Design <span class="cat-count">63</span></a></li>
+        <li><a href="#">Health <span class="cat-count">145</span></a></li>
+        <li><a href="#">Philosophy <span class="cat-count">52</span></a></li>
+        <li><a href="#">Economics <span class="cat-count">79</span></a></li>
+      </ul>
+    </div>
+  </aside>
+</div>
+
+<!-- EDITORS PICKS -->
+<div class="editors-strip">
+  <div class="section-header reveal" style="max-width:none">
+    <h2 class="section-title">From the Editors</h2>
+    <a href="#" class="section-link">All picks <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg></a>
+  </div>
+  <div class="strip-grid reveal">
+    <div class="strip-card">
+      <div class="strip-icon" style="background:rgba(201,150,58,0.12)">🧠</div>
+      <div class="strip-title">How Boredom Became the Enemy of Progress</div>
+      <div class="strip-excerpt">We've engineered boredom out of existence — and in doing so, may have engineered creativity out too.</div>
+    </div>
+    <div class="strip-card">
+      <div class="strip-icon" style="background:rgba(58,122,86,0.12)">🌿</div>
+      <div class="strip-title">Rewilding the Internet: A Manifesto</div>
+      <div class="strip-excerpt">What if we stopped optimizing the web for engagement and started designing it for serendipity?</div>
+    </div>
+    <div class="strip-card">
+      <div class="strip-icon" style="background:rgba(70,120,200,0.12)">🔭</div>
+      <div class="strip-title">The Universe Might Be a Lot Older Than We Thought</div>
+      <div class="strip-excerpt">New observations from the Webb telescope are forcing cosmologists to reconsider the standard model.</div>
+    </div>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="footer-inner">
+    <div class="footer-grid">
+      <div class="footer-brand">
+        <a href="#" class="logo" style="font-size:20px">
+          <div class="logo-dot"></div>
+          Ink & Signal
+        </a>
+        <p>Independent writing on technology, science, culture, and the ideas that shape our world. Written by humans, for humans.</p>
+      </div>
+      <div class="footer-col">
+        <h4>Explore</h4>
+        <a href="#">Technology</a>
+        <a href="#">Science</a>
+        <a href="#">Culture</a>
+        <a href="#">Opinion</a>
+        <a href="#">Design</a>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <a href="#">About Us</a>
+        <a href="#">Write for Us</a>
+        <a href="#">Editorial Standards</a>
+        <a href="#">Advertise</a>
+        <a href="#">Press Kit</a>
+      </div>
+      <div class="footer-col">
+        <h4>Support</h4>
+        <a href="#">Newsletter</a>
+        <a href="#">RSS Feed</a>
+        <a href="#">Privacy Policy</a>
+        <a href="#">Terms of Use</a>
+        <a href="#">Contact</a>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p>© 2026 Ink & Signal. All rights reserved.</p>
+      <div class="social-links">
+        <a href="#" class="social-link" title="Twitter">𝕏</a>
+        <a href="#" class="social-link" title="LinkedIn">in</a>
+        <a href="#" class="social-link" title="RSS">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 11a9 9 0 0 1 9 9"/><path d="M4 4a16 16 0 0 1 16 16"/><circle cx="5" cy="19" r="1"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script>
+  // Custom cursor
+  const cursor = document.getElementById('cursor');
+  const ring = document.getElementById('cursorRing');
+  let mx = 0, my = 0, rx = 0, ry = 0;
+
+  document.addEventListener('mousemove', e => {
+    mx = e.clientX; my = e.clientY;
+    cursor.style.left = mx + 'px';
+    cursor.style.top  = my + 'px';
+  });
+
+  function animateRing() {
+    rx += (mx - rx) * 0.12;
+    ry += (my - ry) * 0.12;
+    ring.style.left = rx + 'px';
+    ring.style.top  = ry + 'px';
+    requestAnimationFrame(animateRing);
+  }
+  animateRing();
+
+  document.querySelectorAll('a, button').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+      cursor.style.width = '16px';
+      cursor.style.height = '16px';
+      ring.style.width = '52px';
+      ring.style.height = '52px';
+    });
+    el.addEventListener('mouseleave', () => {
+      cursor.style.width = '10px';
+      cursor.style.height = '10px';
+      ring.style.width = '36px';
+      ring.style.height = '36px';
+    });
+  });
+
+  // Reading progress
+  const progress = document.getElementById('progressBar');
+  window.addEventListener('scroll', () => {
+    const total = document.body.scrollHeight - window.innerHeight;
+    progress.style.width = (window.scrollY / total * 100) + '%';
+  });
+
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach((e, i) => {
+      if (e.isIntersecting) {
+        setTimeout(() => e.target.classList.add('visible'), i * 60);
+        observer.unobserve(e.target);
+      }
+    });
+  }, { threshold: 0.1 });
+  reveals.forEach(r => observer.observe(r));
+
+  // Bookmark toggle
+  function toggleBookmark(btn) {
+    btn.classList.toggle('saved');
+    const svg = btn.querySelector('svg');
+    if (btn.classList.contains('saved')) {
+      svg.setAttribute('fill', 'currentColor');
+    } else {
+      svg.setAttribute('fill', 'none');
+    }
+  }
+
+  // Topic pills
+  document.querySelectorAll('.topic-pill').forEach(pill => {
+    pill.addEventListener('click', e => {
+      e.preventDefault();
+      document.querySelectorAll('.topic-pill').forEach(p => p.classList.remove('active'));
+      pill.classList.add('active');
+    });
+  });
+</script>
+</body>
+</html>
